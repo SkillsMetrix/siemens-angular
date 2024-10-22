@@ -1,83 +1,41 @@
-import { Component } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
 
-@Component({
-  selector: 'app-reactive',
-  templateUrl: './reactive.component.html',
-  styleUrl: './reactive.component.css'
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { MatButtonModule } from '@angular/material/button';
+import { MatToolbarModule } from '@angular/material/toolbar'
+import { MatIconModule } from '@angular/material/icon'
+import { MatFormFieldModule } from '@angular/material/form-field'
+import { MatInputModule } from '@angular/material/input'
+import { MatDatepickerModule } from '@angular/material/datepicker'
+import { MatNativeDateModule } from '@angular/material/core'
+import { MatRadioModule } from '@angular/material/radio'
+import { MatSelectModule } from '@angular/material/select'
+import { MatTableModule } from '@angular/material/table'
+import { MatPaginatorModule } from '@angular/material/paginator'
+import { MatSortModule } from '@angular/material/sort'
+import { MatSnackBarModule } from '@angular/material/snack-bar'
+
+import { MatDialogModule } from '@angular/material/dialog'
+
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    MatIconModule, MatNativeDateModule, MatRadioModule, MatSelectModule,
+    BrowserModule, MatTableModule, MatPaginatorModule, MatSortModule, MatSnackBarModule,
+    MatDialogModule,
+    AppRoutingModule, MatFormFieldModule, MatDatepickerModule, MatInputModule,
+
+    MatButtonModule, MatToolbarModule,
+
+  ],
+  providers: [
+    provideAnimationsAsync()
+  ],
+  bootstrap: [AppComponent]
 })
-export class ReactiveComponent {
-  myForm: FormGroup
-  uname: FormControl
-  pass: FormControl
-  email: FormControl
-  city: FormControl
-
-  createFormControl() {
-    this.uname = new FormControl('', Validators.required)
-    this.pass = new FormControl('')
-    this.email = new FormControl('', [Validators.required, this.emailDomainValidator])
-    this.city = new FormControl('')
-
-  }
-  createForm() {
-    this.myForm = new FormGroup({
-      uname: this.uname,
-      pass: this.pass,
-      email: this.email,
-      city: this.city
-    })
-
-  }
-  constructor() {
-    this.createFormControl()
-    this.createForm()
-  }
-  addUser() {
-    console.log(this.myForm.value);
-
-  }
-  emailDomainValidator(control: FormControl) {
-    let email = control.value
-    if (email && email.indexOf('@') != -1) {
-      let [before, after] = email.split('@')
-      if (after !=='siemens.com') {
-        return {
-          emailDomain: {
-            parseDomain: after
-          }
-        }
-      }
-    }
-    return null
-
-  }
-}
-----
-
-
-<div class="container">
-    <div class="card">
-        <div class="card-header">
-         User Registration Form
-        </div>
-        <div class="card-body">
-            <form (ngSubmit)="addUser()" [formGroup]="myForm">
-                UserName:<input type="text" formControlName="uname"/>
-                <div *ngIf="uname.invalid &&(uname.dirty || uname.touched)"><h6>Username cant be blank</h6></div>
-
-                Password:<input type="password" formControlName="pass"/>
-                Email:<input type="email" formControlName="email"/>
-
-                <div *ngIf="email.invalid && (email.dirty || email.touched)">
-                    <div *ngIf="email.errors?.['required']"><h6> Email cant be blank</h6></div>
-                    <div *ngIf="email.errors?.['emailDomain']"><h6>Email Must be formated</h6> </div>
-
-                </div>
-               
-                City:<input type="text" formControlName="city"/>
-                <button [disabled]="myForm.invalid">Register</button>
-            </form>
-        </div>
-      </div>
-</div>
+export class AppModule { }
