@@ -1,0 +1,22 @@
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+         User Registration Form
+        </div>
+        <div class="card-body">
+            <form (ngSubmit)="addUser(fdata)" #fdata=ngForm>
+                UserName:<input type="text" name="uname" ngModel required #un=ngModel/>
+                <div *ngIf="un.invalid &&(un.dirty || un.touched)"><h6>Username cant be blank</h6></div>
+                Password:<input type="password" name="pass" ngModel/>
+                Email:<input type="email" name="email" ngModel #em=ngModel required email/>
+                <div *ngIf="em.invalid && (em.dirty || em.touched)">
+                    <div *ngIf="em.errors?.['required']"><h6> Email cant be blank</h6></div>
+                    <div *ngIf="em.errors?.['email']"><h6>Email Must be formated</h6> </div>
+                </div>
+                City:<input type="text" name="city" ngModel/>
+                <button>Register</button>
+            </form>
+        </div>
+      </div>
+</div>
