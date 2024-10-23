@@ -1,3 +1,123 @@
+import { Component, Inject, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { EmpService } from '../../shared/emp.service';
+import { DialogRef } from '@angular/cdk/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+
+@Component({
+  selector: 'app-emp-add',
+  templateUrl: './emp-add.component.html',
+  styleUrl: './emp-add.component.css'
+})
+export class EmpAddComponent implements OnInit{
+  ngOnInit(): void {
+     this.empForm.patchValue(this.data) 
+  }
+  empForm:FormGroup
+
+  constructor(private fb:FormBuilder,private ds:EmpService,private dr:MatDialogRef<EmpAddComponent>,
+@Inject(MAT_DIALOG_DATA)public data:any
+
+  ){
+    this.empForm=this.fb.group({
+      uname:'',
+      pass:'',
+      email:'',
+      doj:'',
+      gender:'',
+      industry:''
+    })
+  }
+  industry:string[]=[
+    'Finance','HR','IT'
+  ]
+  addUser(){
+    if(this.empForm.valid){
+      if(this.data){
+        this.ds.updateUser(this.data.id,this.empForm.value).subscribe({
+          next:(val:any)=>{
+           alert('Employee Updated...!')
+           this.dr.close(true)
+          },
+          error:(err:any)=>{
+            console.log(err);
+            
+          }
+         })
+      }else{
+    }
+   this.ds.addUser(this.empForm.value).subscribe({
+    next:(val:any)=>{
+     alert('Employee added...!')
+     this.dr.close(true)
+    },
+    error:(err:any)=>{
+      console.log(err);
+      
+    }
+   })
+    
+  }
+}}
+---------------
+<div mat-dialog-title>
+    <h1> Registration Form</h1>
+</div>
+<form [formGroup]="empForm" (ngSubmit)="addUser()">
+<div mat-dialog-content>
+    <div class="row">
+        <mat-form-field apperance="outline">
+            <mat-label>UserName</mat-label>
+            <input matInput type="text" placeholder="Enter UserName"
+            formControlName="uname">
+        </mat-form-field>
+        <mat-form-field apperance="outline">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" placeholder="Enter Password"
+            formControlName="pass"
+            >
+        </mat-form-field>
+    </div>
+    <div class="row">
+        <mat-form-field apperance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="text" placeholder="Enter Email"
+            formControlName="email"
+            >
+        </mat-form-field>
+        <mat-form-field apperance="fill">
+            <mat-label>Select Date</mat-label>
+            <input matInput [matDatepicker]="picker"  formControlName="doj">
+            <mat-hint>MM/DD/YY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+    </div>
+    <div class="row">
+        <mat-radio-group aria-label="Select an option"  formControlName="gender">
+            <mat-label><b>Gender</b></mat-label>
+            <mat-radio-button value="male">Male</mat-radio-button>
+            <mat-radio-button value="female">Female</mat-radio-button>
+
+        </mat-radio-group>
+    </div>
+    <div class="row">
+        <mat-form-field appearance="fill">
+            <mat-label>Favorite Industry</mat-label>
+            <mat-select  formControlName="industry">
+                <mat-option *ngFor="let val of industry" [value]="val">{{val}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+</div>
+<div mat-dialog-actions>
+    <button mat-raised-button type="button" [mat-dialog-close]="false">Cancel</button>
+    <button mat-flat-button color="primary">{{data ? 'update': 'Save'}}</button>
+
+</div>
+</form>
+
+-------
 <mat-toolbar>
 
   <span>Angular CRUD App</span>
@@ -54,7 +174,7 @@
     <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef> Action </th>
       <td mat-cell *matCellDef="let row"> 
-        <button mat-icon-button color="primary">
+        <button mat-icon-button color="primary" (click)="openEditForm(row)">
           <mat-icon>edit</mat-icon>
         </button>
         <button mat-icon-button color="warn" (click)="deleteUser(row.id)">
@@ -76,7 +196,9 @@
 
 
 
--------
+
+
+----------
 
 import { Component, OnInit, viewChild, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -125,6 +247,14 @@ export class AppComponent implements OnInit{
     
    })
  }
+
+openEditForm(data:any){
+  this.dialog.open(EmpAddComponent,{
+    data
+  })
+}
+
+
  deleteUser(id:number){
 this.ds.deleteUser(id).subscribe({
   next:(res)=>{
@@ -144,109 +274,30 @@ this.ds.deleteUser(id).subscribe({
   }
  }
 }
+-----
 
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
-
-------------
-
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { EmpService } from '../../shared/emp.service';
-import { DialogRef } from '@angular/cdk/dialog';
-import { MatDialogRef } from '@angular/material/dialog';
-
-@Component({
-  selector: 'app-emp-add',
-  templateUrl: './emp-add.component.html',
-  styleUrl: './emp-add.component.css'
+@Injectable({
+  providedIn: 'root'
 })
-export class EmpAddComponent {
-  empForm:FormGroup
+export class EmpService {
+  constructor(private http:HttpClient){}
 
-  constructor(private fb:FormBuilder,private ds:EmpService,private dr:MatDialogRef<EmpAddComponent>){
-    this.empForm=this.fb.group({
-      uname:'',
-      pass:'',
-      email:'',
-      doj:'',
-      gender:'',
-      industry:''
-    })
-  }
-  industry:string[]=[
-    'Finance','HR','IT'
-  ]
-  addUser(){
-   this.ds.addUser(this.empForm.value).subscribe({
-    next:(val:any)=>{
-     alert('Employee added...!')
-     this.dr.close(true)
-    },
-    error:(err:any)=>{
-      console.log(err);
-      
-    }
-   })
-    
-  }
+   addUser(data:any):Observable<any>{
+    return this.http.post('http://localhost:3000/employees',data)
+   }
+   loadUsers(){
+    return this.http.get('http://localhost:3000/employees')
+   }
+   deleteUser(id:number){
+    return this.http.delete(`http://localhost:3000/employees/${id}`)
+
+   }
+   updateUser(id:number,data:any){
+    return this.http.put(`http://localhost:3000/employees/${id}`,data)
+
+   }
 }
-
-
------------
-
-<div mat-dialog-title>
-    <h1> Registration Form</h1>
-</div>
-<form [formGroup]="empForm" (ngSubmit)="addUser()">
-<div mat-dialog-content>
-    <div class="row">
-        <mat-form-field apperance="outline">
-            <mat-label>UserName</mat-label>
-            <input matInput type="text" placeholder="Enter UserName"
-            formControlName="uname">
-        </mat-form-field>
-        <mat-form-field apperance="outline">
-            <mat-label>Password</mat-label>
-            <input matInput type="password" placeholder="Enter Password"
-            formControlName="pass"
-            >
-        </mat-form-field>
-    </div>
-    <div class="row">
-        <mat-form-field apperance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput type="text" placeholder="Enter Email"
-            formControlName="email"
-            >
-        </mat-form-field>
-        <mat-form-field apperance="fill">
-            <mat-label>Select Date</mat-label>
-            <input matInput [matDatepicker]="picker"  formControlName="doj">
-            <mat-hint>MM/DD/YY</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-    </div>
-    <div class="row">
-        <mat-radio-group aria-label="Select an option"  formControlName="gender">
-            <mat-label><b>Gender</b></mat-label>
-            <mat-radio-button value="male">Male</mat-radio-button>
-            <mat-radio-button value="female">Female</mat-radio-button>
-
-        </mat-radio-group>
-    </div>
-    <div class="row">
-        <mat-form-field appearance="fill">
-            <mat-label>Favorite Industry</mat-label>
-            <mat-select  formControlName="industry">
-                <mat-option *ngFor="let val of industry" [value]="val">{{val}}</mat-option>
-            </mat-select>
-        </mat-form-field>
-    </div>
-</div>
-<div mat-dialog-actions>
-    <button mat-raised-button type="button" [mat-dialog-close]="false">Cancel</button>
-    <button mat-flat-button color="primary">Save</button>
-
-</div>
-</form>
