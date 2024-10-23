@@ -1,62 +1,3 @@
-import { Component, OnInit, viewChild, ViewChild } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { EmpAddComponent } from './components/emp-add/emp-add.component';
-import { EmpService } from './shared/emp.service';
-import { MatPaginator } from '@angular/material/paginator'
-import { MatTableDataSource } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
-})
-export class AppComponent implements OnInit{
-  displayedColumns: string[]=[
-    'id','uname','email','doj','industry','gender','action'
-  ]
-  dataSource!: MatTableDataSource<any>
-  @ViewChild(MatPaginator) paginator!: MatPaginator
-  @ViewChild(MatSort) sort!: MatSort
-
- constructor(private dialog:MatDialog,private ds: EmpService){}
-  openAddEditForm(){
-  this.dialog.open(EmpAddComponent)
- }
- ngOnInit(): void {
-     this.getEMpLIst()
- }
- getEMpLIst(){
-  this.ds.loadUsers().subscribe((data:any)=>{
-    this.dataSource= new MatTableDataSource(data)
-    this.dataSource.sort=this.sort
-    this.dataSource.paginator=this.paginator
-    
-    
-   })
- }
- deleteUser(id:number){
-this.ds.deleteUser(id).subscribe({
-  next:(res)=>{
-    alert('user deleted...!')
-    this.getEMpLIst()
-  },
-  error: console.log,
-  
-})
- }
- applyFilter(event:Event){
-  const filterValue=(event.target as HTMLInputElement).value
-  this.dataSource.filter=filterValue.trim().toLowerCase()
-
-  if(this.dataSource.paginator){
-    this.dataSource.paginator.firstPage()
-  }
- }
-}
-----
-
-
 <mat-toolbar>
 
   <span>Angular CRUD App</span>
@@ -135,3 +76,177 @@ this.ds.deleteUser(id).subscribe({
 
 
 
+-------
+
+import { Component, OnInit, viewChild, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { EmpAddComponent } from './components/emp-add/emp-add.component';
+import { EmpService } from './shared/emp.service';
+import { MatPaginator } from '@angular/material/paginator'
+import { MatTableDataSource } from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent implements OnInit{
+  displayedColumns: string[]=[
+    'id','uname','email','doj','industry','gender','action'
+  ]
+  dataSource!: MatTableDataSource<any>
+  @ViewChild(MatPaginator) paginator!: MatPaginator
+  @ViewChild(MatSort) sort!: MatSort
+
+ constructor(private dialog:MatDialog,private ds: EmpService){}
+  openAddEditForm(){
+  this.dialog.open(EmpAddComponent)
+ }
+ ngOnInit(): void {
+     this.getEMpLIst()
+ }
+ openEdit(){
+  const df=this.dialog.open(EmpAddComponent)
+  df.afterClosed().subscribe({
+    next:(val)=>{
+      if(val) {
+        this.getEMpLIst()
+      }
+    }
+  })
+ }
+ getEMpLIst(){
+  this.ds.loadUsers().subscribe((data:any)=>{
+    this.dataSource= new MatTableDataSource(data)
+    this.dataSource.sort=this.sort
+    this.dataSource.paginator=this.paginator
+    
+    
+   })
+ }
+ deleteUser(id:number){
+this.ds.deleteUser(id).subscribe({
+  next:(res)=>{
+    alert('user deleted...!')
+    this.getEMpLIst()
+  },
+  error: console.log,
+  
+})
+ }
+ applyFilter(event:Event){
+  const filterValue=(event.target as HTMLInputElement).value
+  this.dataSource.filter=filterValue.trim().toLowerCase()
+
+  if(this.dataSource.paginator){
+    this.dataSource.paginator.firstPage()
+  }
+ }
+}
+
+
+
+------------
+
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { EmpService } from '../../shared/emp.service';
+import { DialogRef } from '@angular/cdk/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
+
+@Component({
+  selector: 'app-emp-add',
+  templateUrl: './emp-add.component.html',
+  styleUrl: './emp-add.component.css'
+})
+export class EmpAddComponent {
+  empForm:FormGroup
+
+  constructor(private fb:FormBuilder,private ds:EmpService,private dr:MatDialogRef<EmpAddComponent>){
+    this.empForm=this.fb.group({
+      uname:'',
+      pass:'',
+      email:'',
+      doj:'',
+      gender:'',
+      industry:''
+    })
+  }
+  industry:string[]=[
+    'Finance','HR','IT'
+  ]
+  addUser(){
+   this.ds.addUser(this.empForm.value).subscribe({
+    next:(val:any)=>{
+     alert('Employee added...!')
+     this.dr.close(true)
+    },
+    error:(err:any)=>{
+      console.log(err);
+      
+    }
+   })
+    
+  }
+}
+
+
+-----------
+
+<div mat-dialog-title>
+    <h1> Registration Form</h1>
+</div>
+<form [formGroup]="empForm" (ngSubmit)="addUser()">
+<div mat-dialog-content>
+    <div class="row">
+        <mat-form-field apperance="outline">
+            <mat-label>UserName</mat-label>
+            <input matInput type="text" placeholder="Enter UserName"
+            formControlName="uname">
+        </mat-form-field>
+        <mat-form-field apperance="outline">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" placeholder="Enter Password"
+            formControlName="pass"
+            >
+        </mat-form-field>
+    </div>
+    <div class="row">
+        <mat-form-field apperance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="text" placeholder="Enter Email"
+            formControlName="email"
+            >
+        </mat-form-field>
+        <mat-form-field apperance="fill">
+            <mat-label>Select Date</mat-label>
+            <input matInput [matDatepicker]="picker"  formControlName="doj">
+            <mat-hint>MM/DD/YY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+    </div>
+    <div class="row">
+        <mat-radio-group aria-label="Select an option"  formControlName="gender">
+            <mat-label><b>Gender</b></mat-label>
+            <mat-radio-button value="male">Male</mat-radio-button>
+            <mat-radio-button value="female">Female</mat-radio-button>
+
+        </mat-radio-group>
+    </div>
+    <div class="row">
+        <mat-form-field appearance="fill">
+            <mat-label>Favorite Industry</mat-label>
+            <mat-select  formControlName="industry">
+                <mat-option *ngFor="let val of industry" [value]="val">{{val}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+</div>
+<div mat-dialog-actions>
+    <button mat-raised-button type="button" [mat-dialog-close]="false">Cancel</button>
+    <button mat-flat-button color="primary">Save</button>
+
+</div>
+</form>
