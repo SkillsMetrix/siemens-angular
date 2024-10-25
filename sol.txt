@@ -1,10 +1,11 @@
 
 import { Actions, createEffect, ofType } from '@ngrx/effects'
 import { DataService } from 'src/app/Service/data.service'
-import { getMovies, getMoviesSuccess } from '../Actions/movie.action'
-import { catchError, exhaustMap, map } from 'rxjs/operators'
+import { addMovies, addMoviesSuccess, getMovies, getMoviesSuccess } from '../Actions/movie.action'
+import { catchError, concatMap, exhaustMap, map } from 'rxjs/operators'
 import { EmptyError } from 'rxjs'
- 
+import { Injectable } from '@angular/core'
+@Injectable()
 export class MovieEffect {
     loadMovie$ = createEffect(() =>
         this.action$.pipe(
@@ -12,86 +13,20 @@ export class MovieEffect {
             exhaustMap(() =>
                 this.ds.getMovies().pipe(
                     map((movies) => getMoviesSuccess(movies)),
-                    
+
                 )
             )
         )
     )
+    addMovie$ = createEffect(() =>
+        this.action$.pipe(
+            ofType(addMovies),
+            concatMap(({ movie }) =>
+                this.ds.addMovies(movie).pipe(
+                    map((newMovie) => addMoviesSuccess(newMovie))
+                )
+            )
 
+        ))
     constructor(private action$: Actions, private ds: DataService) { }
 }
----------
-
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
-
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { MovieListComponent } from './movie-list/movie-list.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MaterialModules } from './app.material.module';
-import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
-import { InMemoryService } from './Service/in-memory.service';
-import { FormsModule } from '@angular/forms';
-import { StoreModule } from '@ngrx/store';
-import { environment } from '../environments/environment';
-import { movieReducer } from './Store/Reducers/movie.reducer';
-import { StoreDevtools, StoreDevtoolsModule } from '@ngrx/store-devtools';
-import { EffectsModule } from '@ngrx/effects';
-import { MovieEffect } from './Store/Effects/movie.effects';
-
-@NgModule({
-  declarations: [AppComponent, MovieListComponent],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    FormsModule,
-    MaterialModules,
-    HttpClientModule,
-    HttpClientInMemoryWebApiModule.forRoot(InMemoryService),
-    StoreModule.forRoot({movies:movieReducer}),
-    StoreDevtoolsModule.instrument({maxAge:25,logOnly:environment.production}),
-    EffectsModule.forRoot([MovieEffect])
-    
-  ],
-  providers: [],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
-
-
-----
-import { createAction, props } from '@ngrx/store'
-import { Movie } from 'src/app/Models/movie'
-//effect will listen to this event
-export const getMovies=createAction('load Movies')
-//post success effect will invoke this method which intern listen by reducer
-export const getMoviesSuccess=createAction('load Movies Success',
-    (movies:ReadonlyArray<Movie>)=> ({movies})
-   //props<{movies: ReadonlyArray<Movie>}>()
-)
-
-
-export const addMovies=createAction('load Movies',(movie:Movie)=> movie)
-export const addMoviesSuccess=createAction('load Movies')
-
-
-------------
-
-import { createReducer, on } from "@ngrx/store";
-import { Movie } from "src/app/Models/movie";
-import { addMovies, getMovies, getMoviesSuccess } from "../Actions/movie.action";
- 
-export interface MovieState{
-    movies:ReadonlyArray<Movie>
-}
-
-const initialState:ReadonlyArray<Movie>=[]
-
-export const movieReducer=createReducer(
-initialState,
-on(getMoviesSuccess,(state,{movies})=> [...movies]),
-on(addMovies,(state,movie)=> [...state,movie])
-)
