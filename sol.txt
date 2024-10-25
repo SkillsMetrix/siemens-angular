@@ -1,32 +1,30 @@
 
-import { Actions, createEffect, ofType } from '@ngrx/effects'
-import { DataService } from 'src/app/Service/data.service'
-import { addMovies, addMoviesSuccess, getMovies, getMoviesSuccess } from '../Actions/movie.action'
-import { catchError, concatMap, exhaustMap, map } from 'rxjs/operators'
-import { EmptyError } from 'rxjs'
-import { Injectable } from '@angular/core'
-@Injectable()
-export class MovieEffect {
-    loadMovie$ = createEffect(() =>
-        this.action$.pipe(
-            ofType(getMovies),
-            exhaustMap(() =>
-                this.ds.getMovies().pipe(
-                    map((movies) => getMoviesSuccess(movies)),
 
-                )
-            )
-        )
-    )
-    addMovie$ = createEffect(() =>
-        this.action$.pipe(
-            ofType(addMovies),
-            concatMap(({ movie }) =>
-                this.ds.addMovies(movie).pipe(
-                    map((newMovie) => addMoviesSuccess(newMovie))
-                )
-            )
+import { TestBed } from '@angular/core/testing'
+import { AppComponent } from '../app.component'
+import { TestcompComponent } from './testcomp.component'
 
-        ))
-    constructor(private action$: Actions, private ds: DataService) { }
-}
+
+// create test suite
+describe('Test Suite for component',()=>{
+    beforeEach(()=> TestBed.configureTestingModule({
+       // declarations:[TestcompComponent]
+    }))
+    // test case
+    it('should load the component',()=>{
+           const fixture= TestBed.createComponent(TestcompComponent)
+           const app= fixture.componentInstance;
+           expect(app).toBeTruthy()
+    })
+    it('should test  the  value of component',()=>{
+        const fixture= TestBed.createComponent(TestcompComponent)
+        const app= fixture.componentInstance;
+        expect(app.username).toBe('admin')
+ })
+ it('should check the template',()=>{
+    const fixture= TestBed.createComponent(TestcompComponent)
+    fixture.detectChanges()
+    const compiled= fixture.nativeElement as HTMLElement
+     expect(compiled.querySelector('.content span')?.textContent).toContain('welcome')
+})
+})
