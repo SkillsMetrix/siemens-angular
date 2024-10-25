@@ -1,30 +1,43 @@
 
 
-import { TestBed } from '@angular/core/testing'
-import { AppComponent } from '../app.component'
-import { TestcompComponent } from './testcomp.component'
-
-
-// create test suite
-describe('Test Suite for component',()=>{
-    beforeEach(()=> TestBed.configureTestingModule({
-       // declarations:[TestcompComponent]
-    }))
-    // test case
-    it('should load the component',()=>{
-           const fixture= TestBed.createComponent(TestcompComponent)
-           const app= fixture.componentInstance;
-           expect(app).toBeTruthy()
-    })
-    it('should test  the  value of component',()=>{
-        const fixture= TestBed.createComponent(TestcompComponent)
-        const app= fixture.componentInstance;
-        expect(app.username).toBe('admin')
- })
- it('should check the template',()=>{
-    const fixture= TestBed.createComponent(TestcompComponent)
-    fixture.detectChanges()
-    const compiled= fixture.nativeElement as HTMLElement
-     expect(compiled.querySelector('.content span')?.textContent).toContain('welcome')
-})
-})
+ 
+module.exports = function (config) {
+  config.set({
+    basePath: '',
+    frameworks: ['jasmine', '@angular-devkit/build-angular'],
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-chrome-launcher'),
+      require('karma-jasmine-html-reporter'),
+      require('karma-coverage'),
+      require('@angular-devkit/build-angular/plugins/karma'),
+      require('karma-htmlfile-reporter')
+    ],
+    client: {
+      jasmine: {
+        
+      },
+    },
+    jasmineHtmlReporter: {
+      suppressAll: true // removes the duplicated traces
+    },
+    coverageReporter: {
+      dir: require('path').join(__dirname, './coverage/test-app'),
+      subdir: '.',
+      reporters: [
+        { type: 'html' },
+        { type: 'text-summary' }
+      ]
+    },
+    reporters: ['progress', 'kjhtml'],
+    reporters:['progress', 'html'],
+    htmlReporter: {
+      outputFile: 'tests/myreport.html',
+      pageTitle: 'MY Customized Report',
+    useLegacyStyle: true,
+    },
+    
+    browsers: ['Chrome'],
+    restartOnFileChange: true
+  });
+};
