@@ -1,43 +1,64 @@
+import { createAction, props } from '@ngrx/store'
+import { Movie } from 'src/app/Models/movie'
+//effect will listen to this event
+export const getMovies=createAction('load Movies')
+//post success effect will invoke this method which intern listen by reducer
+export const getMoviesSuccess=createAction('load Movies Success',
+    (movies:ReadonlyArray<Movie>)=> ({movies})
+ )
 
 
+export const addMovies=createAction('load Movies',(movie:Movie)=> ({movie}))
+export const addMoviesSuccess=createAction('add Movies success',(movie:Movie)=> ({movie}))
+
+------------
+
+
+import { Actions, createEffect, ofType } from '@ngrx/effects'
+import { DataService } from 'src/app/Service/data.service'
+import { addMovies, addMoviesSuccess, getMovies, getMoviesSuccess } from '../Actions/movie.action'
+import { catchError, concatMap, exhaustMap, map } from 'rxjs/operators'
+import { EmptyError } from 'rxjs'
+import { Injectable } from '@angular/core'
+@Injectable()
+export class MovieEffect {
+    loadMovie$ = createEffect(() =>
+        this.action$.pipe(
+            ofType(getMovies),
+            exhaustMap(() =>
+                this.ds.getMovies().pipe(
+                    map((movies) => getMoviesSuccess(movies)),
+
+                )
+            )
+        )
+    )
+    addMovie$ = createEffect(() =>
+        this.action$.pipe(
+            ofType(addMovies),
+            concatMap(({ movie }) =>
+                this.ds.addMovies(movie).pipe(
+                    map((newMovie) => addMoviesSuccess(newMovie))
+                )
+            )
+
+        ))
+    constructor(private action$: Actions, private ds: DataService) { }
+}
+
+--------
+import { createReducer, on } from "@ngrx/store";
+import { Movie } from "src/app/Models/movie";
+import { addMovies, addMoviesSuccess, getMovies, getMoviesSuccess } from "../Actions/movie.action";
  
-module.exports = function (config) {
-  config.set({
-    basePath: '',
-    frameworks: ['jasmine', '@angular-devkit/build-angular'],
-    plugins: [
-      require('karma-jasmine'),
-      require('karma-chrome-launcher'),
-      require('karma-jasmine-html-reporter'),
-      require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma'),
-      require('karma-htmlfile-reporter')
-    ],
-    client: {
-      jasmine: {
-        
-      },
-    },
-    jasmineHtmlReporter: {
-      suppressAll: true // removes the duplicated traces
-    },
-    coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/test-app'),
-      subdir: '.',
-      reporters: [
-        { type: 'html' },
-        { type: 'text-summary' }
-      ]
-    },
-    reporters: ['progress', 'kjhtml'],
-    reporters:['progress', 'html'],
-    htmlReporter: {
-      outputFile: 'tests/myreport.html',
-      pageTitle: 'MY Customized Report',
-    useLegacyStyle: true,
-    },
-    
-    browsers: ['Chrome'],
-    restartOnFileChange: true
-  });
-};
+export interface MovieState{
+    movies:ReadonlyArray<Movie>
+}
+
+const initialState:ReadonlyArray<Movie>=[]
+
+export const movieReducer=createReducer(
+initialState,
+on(getMoviesSuccess,(state,{movies})=> [...movies]),
+on(addMoviesSuccess,(state, {movie}) => [...state,movie])
+)
